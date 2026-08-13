@@ -17,3 +17,8 @@ spring:
 
 server:
   port: 8080
+
+app:
+  jwt:
+    secret: "openex-dev-secret-key-change-in-production-min-32-chars-long-1234567890"
+    expiration-ms: 86400000
