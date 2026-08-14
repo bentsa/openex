@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 interface AuthState {
   token: string | null
@@ -7,9 +8,14 @@ interface AuthState {
   clearAuth: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
-  email: null,
-  setAuth: (token, email) => set({ token, email }),
-  clearAuth: () => set({ token: null, email: null }),
-}))
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      token: null,
+      email: null,
+      setAuth: (token, email) => set({ token, email }),
+      clearAuth: () => set({ token: null, email: null }),
+    }),
+    { name: 'openex-auth' }
+  )
+)
