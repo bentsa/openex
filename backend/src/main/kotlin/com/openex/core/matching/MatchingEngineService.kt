@@ -10,7 +10,9 @@ import com.openex.core.orders.OrderStatus
 import com.openex.core.orders.OrderType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.math.BigDecimal
+
 
 @Service
 class MatchingEngineService(
@@ -29,7 +31,8 @@ class MatchingEngineService(
 class OrderMatcher(
     private val orderRepository: OrderRepository,
     private val tradeRepository: TradeRepository,
-    private val ledgerService: LedgerService
+    private val ledgerService: LedgerService,
+    private val messagingTemplate: SimpMessagingTemplate
 ) {
 
     @Transactional
@@ -74,7 +77,25 @@ class OrderMatcher(
             else -> OrderStatus.OPEN
         }
 
-        return orderRepository.save(current.copy(status = finalStatus))
+        val savedOrder = orderRepository.save(current.copy(status = finalStatus))
+        broadcastOrderBookSnapshot()
+        return savedOrder
+    }
+
+    private fun broadcastOrderBookSnapshot() {
+        val bids = orderRepository.findMatchableForUpdate(OrderSide.BUY)
+            .filter { it.price != null }
+            .groupBy { it.price!! }
+            .map { (price, orders) -> OrderBookLevel(price, orders.sumOf { it.quantity - it.filledQuantity }) }
+            .sortedByDescending { it.price }
+
+        val asks = orderRepository.findMatchableForUpdate(OrderSide.SELL)
+            .filter { it.price != null }
+            .groupBy { it.price!! }
+            .map { (price, orders) -> OrderBookLevel(price, orders.sumOf { it.quantity - it.filledQuantity }) }
+            .sortedBy { it.price }
+
+        messagingTemplate.convertAndSend("/topic/orderbook", OrderBookSnapshot(bids, asks))
     }
 
     private fun findMatchableRestingOrders(incoming: Order): List<Order> {
