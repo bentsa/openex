@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createOrder, type OrderSide, type OrderType } from '../api/orders'
 import { getWallets, type WalletBalance } from '../api/wallet'
+import OrderBook from '../components/OrderBook'
 
 export default function Trading() {
   const [wallets, setWallets] = useState<WalletBalance[]>([])
@@ -52,77 +53,81 @@ export default function Trading() {
   }
 
   return (
-    <div style={{ maxWidth: '320px' }}>
-      <h1>Trading</h1>
+    <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+      <div style={{ maxWidth: '320px' }}>
+        <h1>Trading</h1>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <label>
-          Account
-          <select
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            required
-            style={{ display: 'block', width: '100%' }}
-          >
-            {wallets.map((w) => (
-              <option key={w.accountId} value={w.accountId}>
-                {w.currency} (balance: {w.balance})
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div>
-          <button type="button" onClick={() => setSide('BUY')} disabled={side === 'BUY'}>
-            Buy
-          </button>
-          <button type="button" onClick={() => setSide('SELL')} disabled={side === 'SELL'} style={{ marginLeft: '0.5rem' }}>
-            Sell
-          </button>
-        </div>
-
-        <div>
-          <button type="button" onClick={() => setOrderType('LIMIT')} disabled={orderType === 'LIMIT'}>
-            Limit
-          </button>
-          <button type="button" onClick={() => setOrderType('MARKET')} disabled={orderType === 'MARKET'} style={{ marginLeft: '0.5rem' }}>
-            Market
-          </button>
-        </div>
-
-        <label>
-          Quantity
-          <input
-            type="number"
-            step="any"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            required
-            style={{ display: 'block', width: '100%' }}
-          />
-        </label>
-
-        {orderType === 'LIMIT' && (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <label>
-            Price
+            Account
+            <select
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+              required
+              style={{ display: 'block', width: '100%' }}
+            >
+              {wallets.map((w) => (
+                <option key={w.accountId} value={w.accountId}>
+                  {w.currency} (balance: {w.balance})
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div>
+            <button type="button" onClick={() => setSide('BUY')} disabled={side === 'BUY'}>
+              Buy
+            </button>
+            <button type="button" onClick={() => setSide('SELL')} disabled={side === 'SELL'} style={{ marginLeft: '0.5rem' }}>
+              Sell
+            </button>
+          </div>
+
+          <div>
+            <button type="button" onClick={() => setOrderType('LIMIT')} disabled={orderType === 'LIMIT'}>
+              Limit
+            </button>
+            <button type="button" onClick={() => setOrderType('MARKET')} disabled={orderType === 'MARKET'} style={{ marginLeft: '0.5rem' }}>
+              Market
+            </button>
+          </div>
+
+          <label>
+            Quantity
             <input
               type="number"
               step="any"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
               required
               style={{ display: 'block', width: '100%' }}
             />
           </label>
-        )}
 
-        {message && <p style={{ color: 'green' }}>{message}</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+          {orderType === 'LIMIT' && (
+            <label>
+              Price
+              <input
+                type="number"
+                step="any"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+                style={{ display: 'block', width: '100%' }}
+              />
+            </label>
+          )}
 
-        <button type="submit" disabled={submitting || !accountId}>
-          {submitting ? 'Placing order...' : 'Place Order'}
-        </button>
-      </form>
+          {message && <p style={{ color: 'green' }}>{message}</p>}
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+
+          <button type="submit" disabled={submitting || !accountId}>
+            {submitting ? 'Placing order...' : 'Place Order'}
+          </button>
+        </form>
+      </div>
+
+      <OrderBook />
     </div>
   )
 }
