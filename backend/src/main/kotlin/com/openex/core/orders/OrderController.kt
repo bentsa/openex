@@ -2,6 +2,7 @@ package com.openex.core.orders
 
 import com.openex.core.idempotency.IdempotencyService
 import com.openex.core.ledger.AccountRepository
+import com.openex.core.matching.MatchingEngineService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/orders")
 class OrderController(
-    private val orderRepository: OrderRepository,
+    private val matchingEngineService: MatchingEngineService,
     private val accountRepository: AccountRepository,
     private val idempotencyService: IdempotencyService
 ) {
@@ -38,7 +39,7 @@ class OrderController(
                 require(request.price > java.math.BigDecimal.ZERO) { "Price must be positive" }
             }
 
-            val order = orderRepository.save(
+            val order = matchingEngineService.submitOrder(
                 Order(
                     accountId = request.accountId,
                     side = request.side,
