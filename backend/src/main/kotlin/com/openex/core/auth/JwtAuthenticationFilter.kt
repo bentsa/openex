@@ -1,4 +1,4 @@
-package com.openex.core.auth
+﻿package com.openex.core.auth
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -28,18 +28,27 @@ class JwtAuthenticationFilter(
         }
 
         val token = authHeader.substring(7)
-        val email = jwtService.extractEmail(token)
 
-        if (email.isNotBlank() && SecurityContextHolder.getContext().authentication == null) {
-            val userDetails = userDetailsService.loadUserByUsername(email)
+        try {
+            val email = jwtService.extractEmail(token)
 
-            if (jwtService.isTokenValid(token, email)) {
-                val authToken = UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.authorities
-                )
-                authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
-                SecurityContextHolder.getContext().authentication = authToken
+            if (email.isNotBlank() && SecurityContextHolder.getContext().authentication == null) {
+                val userDetails = userDetailsService.loadUserByUsername(email)
+
+                if (jwtService.isTokenValid(token, email)) {
+                    val authToken = UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.authorities
+                    )
+                    authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
+                    SecurityContextHolder.getContext().authentication = authToken
+                }
             }
+        } catch (ex: Exception) {
+            // Invalid, malformed, or expired token: proceed unauthenticated
+            // rather than breaking the whole filter chain. Spring Security's
+            // authorizeHttpRequests rules will handle the request from here
+            // (permitAll endpoints still work, protected ones return 401).
+            SecurityContextHolder.clearContext()
         }
 
         filterChain.doFilter(request, response)
