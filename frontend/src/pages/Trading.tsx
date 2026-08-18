@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createOrder, type OrderSide, type OrderType } from '../api/orders'
 import { getWallets, type WalletBalance } from '../api/wallet'
 import OrderBook from '../components/OrderBook'
+import PriceChart from '../components/PriceChart'
 
 export default function Trading() {
   const [wallets, setWallets] = useState<WalletBalance[]>([])
@@ -127,7 +128,10 @@ export default function Trading() {
         </form>
       </div>
 
-      <OrderBook />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <PriceChart />
+        <OrderBook />
+      </div>
     </div>
   )
 }

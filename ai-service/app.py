@@ -1,4 +1,5 @@
 ﻿from flask import Flask, jsonify, request
+from flask_cors import CORS
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -6,6 +7,7 @@ from langchain_ollama import ChatOllama
 import requests
 
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173"])
 
 # --- Simulated market data generator ---
 

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
 import Trading from './pages/Trading'
 import Login from './pages/Login'
+import ChatWidget from './components/ChatWidget'
 
 function NavBar() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/login" element={<Login />} />
         </Routes>
       </div>
+      <ChatWidget />
     </BrowserRouter>
   )
 }
