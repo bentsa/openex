@@ -33,8 +33,10 @@ Start services in this order.
 
 ### 1. Infrastructure (Postgres + Redis)
 cd openex
-docker-compose up -d
+docker compose up -d
 docker ps
+
+Wait for both containers to show "healthy" before continuing.
 
 ### 2. Backend (Kotlin/Spring Boot)
 cd backend
@@ -94,6 +96,51 @@ fetch wallet data is made in Python rather than by the model itself.
 This was a deliberate scope trade-off under time pressure. A follow-up
 would be to try a model with more robust native tool-calling support,
 or to debug the LangChain agent hang with more time available.
+
+## DevOps & Containerization
+
+**Containerized (via `docker-compose.yml`):**
+- PostgreSQL - with a `pg_isready` healthcheck
+- Redis - with a `redis-cli ping` healthcheck
+
+Bring both up with:
+```
+docker compose up -d
+```
+Both must report `(healthy)` (check with `docker ps`) before starting
+the backend, since the backend has no built-in retry/wait logic for the
+database connection.
+
+**Run via local dev servers (not containerized):**
+- Kotlin/Spring Boot backend - `./gradlew bootRun`
+- Python/Flask AI service - `python app.py` (inside the `venv`)
+- React/Vite frontend - `npm run dev`
+
+**Why these three aren't containerized:** the original plan was to
+containerize the full stack, including the backend, AI service, and
+Ollama, so the entire application could start with a single
+`docker-compose up`. In practice this hit two separate blockers close
+to the submission deadline:
+
+1. **Backend image build failures.** The Gradle build inside the Docker
+   image failed with dependency-resolution and TLS errors when fetching
+   plugins/dependencies from within the container's network context - a
+   different failure each time the build was retried, suggesting an
+   unstable network/proxy environment inside the container rather than
+   a fixable configuration issue.
+2. **AI service image build failures.** `pip install` timed out
+   repeatedly part-way through installing the (fairly heavy)
+   LangChain/numpy/pandas dependency set inside the container.
+
+Given limited time before submission, the pragmatic call was to keep
+Postgres and Redis containerized (satisfying the core "database as a
+container with healthchecks" requirement) and continue running the
+backend, AI service, and frontend via their normal dev-server commands,
+which are fast, reliable, and already well-tested throughout this
+project. A clean follow-up would be to debug the container
+network/proxy issue directly (likely a corporate/local DNS or MTU issue
+affecting `apt`/`pip`/Gradle registry access from inside containers)
+and finish full containerization with more time available.
 
 ## Testing
 
