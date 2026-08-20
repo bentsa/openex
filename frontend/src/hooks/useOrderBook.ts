@@ -12,7 +12,7 @@ export interface OrderBookSnapshot {
   asks: OrderBookLevel[];
 }
 
-const WS_URL = "http://localhost:8080/ws";
+const WS_URL = import.meta.env.VITE_WS_URL ?? "http://localhost:8080/ws";
 
 export function useOrderBook() {
   const [snapshot, setSnapshot] = useState<OrderBookSnapshot>({ bids: [], asks: [] });

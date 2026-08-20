@@ -5,9 +5,10 @@ import pandas as pd
 from datetime import datetime, timedelta
 from langchain_ollama import ChatOllama
 import requests
+import os
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app, origins=os.environ.get("CORS_ALLOWED_ORIGIN", "http://localhost:5173").split(","))
 
 # --- Simulated market data generator ---
 
@@ -62,7 +63,7 @@ def health():
 
 # --- AI trading assistant (Day 13: tool calling against the Kotlin wallets API) ---
 
-KOTLIN_API_BASE = "http://localhost:8080"
+KOTLIN_API_BASE = os.environ.get("KOTLIN_API_BASE", "http://localhost:8080")
 
 FINANCIAL_PERSONA = """You are a knowledgeable but cautious financial assistant for OpenEx,
 a simulated crypto trading platform. You help users understand trading concepts, market
