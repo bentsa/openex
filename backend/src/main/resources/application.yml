@@ -2,9 +2,9 @@ spring:
   application:
     name: openex-core
   datasource:
-    url: jdbc:postgresql://localhost:5432/openex
-    username: openex
-    password: openex
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/openex}
+    username: ${DATABASE_USERNAME:openex}
+    password: ${DATABASE_PASSWORD:openex}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -16,9 +16,11 @@ spring:
     locations: classpath:db/migration
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 app:
   jwt:
-    secret: "openex-dev-secret-key-change-in-production-min-32-chars-long-1234567890"
-    expiration-ms: 86400000
+    secret: ${JWT_SECRET:openex-dev-secret-key-change-in-production-min-32-chars-long-1234567890}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:5173}

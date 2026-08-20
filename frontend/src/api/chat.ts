@@ -1,6 +1,6 @@
 ﻿import { useAuthStore } from "../store/authStore"
 
-const AI_SERVICE_BASE_URL = "http://localhost:5001/api"
+const AI_SERVICE_BASE_URL = import.meta.env.VITE_AI_SERVICE_URL ?? "http://localhost:5001/api"
 
 export interface ChatResponse {
   response: string
