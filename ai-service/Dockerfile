@@ -13,7 +13,6 @@ COPY . .
 
 ENV OLLAMA_HOST=0.0.0.0
 EXPOSE 5001
-EXPOSE 11434
 
 COPY start.sh .
 RUN chmod +x start.sh
