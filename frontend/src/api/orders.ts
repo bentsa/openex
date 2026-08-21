@@ -34,3 +34,7 @@ export function createOrder(request: CreateOrderRequest): Promise<OrderResponse>
     body: JSON.stringify(request),
   })
 }
+
+export function getOrders(accountId: string): Promise<OrderResponse[]> {
+  return apiFetch(`/orders?accountId=${accountId}`)
+}
