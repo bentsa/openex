@@ -1,6 +1,6 @@
 FROM ollama/ollama:latest AS ollama-base
 
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Copy Ollama binary from the ollama image
 COPY --from=ollama-base /bin/ollama /bin/ollama
