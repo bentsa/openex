@@ -1,4 +1,4 @@
-FROM ollama/ollama:latest AS ollama-base
+﻿FROM ollama/ollama:latest AS ollama-base
 
 FROM python:3.12-slim
 
@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt --break-system-packages || pi
 
 COPY . .
 
-ENV OLLAMA_HOST=0.0.0.0
+ENV PYTHONUNBUFFERED=1
 EXPOSE 5001
 
 COPY start.sh .
