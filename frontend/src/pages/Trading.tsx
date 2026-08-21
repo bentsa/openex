@@ -54,83 +54,103 @@ export default function Trading() {
   }
 
   return (
-    <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-      <div style={{ maxWidth: '320px' }}>
-        <h1>Trading</h1>
+    <div>
+      <div className="page-header">
+        <h1 className="page-title">Trading</h1>
+        <p className="page-subtitle">Place limit and market orders on BTC-USD</p>
+      </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <label>
-            Account
-            <select
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-              required
-              style={{ display: 'block', width: '100%' }}
-            >
-              {wallets.map((w) => (
-                <option key={w.accountId} value={w.accountId}>
-                  {w.currency} (balance: {w.balance})
-                </option>
-              ))}
-            </select>
-          </label>
+      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="card" style={{ width: '300px', flexShrink: 0 }}>
+          <div className="card-title">New Order</div>
 
-          <div>
-            <button type="button" onClick={() => setSide('BUY')} disabled={side === 'BUY'}>
-              Buy
-            </button>
-            <button type="button" onClick={() => setSide('SELL')} disabled={side === 'SELL'} style={{ marginLeft: '0.5rem' }}>
-              Sell
-            </button>
-          </div>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <label className="field">
+              Account
+              <select value={accountId} onChange={(e) => setAccountId(e.target.value)} required>
+                {wallets.map((w) => (
+                  <option key={w.accountId} value={w.accountId}>
+                    {w.currency} (balance: {w.balance})
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <div>
-            <button type="button" onClick={() => setOrderType('LIMIT')} disabled={orderType === 'LIMIT'}>
-              Limit
-            </button>
-            <button type="button" onClick={() => setOrderType('MARKET')} disabled={orderType === 'MARKET'} style={{ marginLeft: '0.5rem' }}>
-              Market
-            </button>
-          </div>
+            <div className="btn-toggle-group">
+              <button
+                type="button"
+                className={`btn-toggle buy${side === 'BUY' ? ' active' : ''}`}
+                onClick={() => setSide('BUY')}
+              >
+                Buy
+              </button>
+              <button
+                type="button"
+                className={`btn-toggle sell${side === 'SELL' ? ' active' : ''}`}
+                onClick={() => setSide('SELL')}
+              >
+                Sell
+              </button>
+            </div>
 
-          <label>
-            Quantity
-            <input
-              type="number"
-              step="any"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              required
-              style={{ display: 'block', width: '100%' }}
-            />
-          </label>
+            <div className="btn-toggle-group">
+              <button
+                type="button"
+                className={`btn-toggle${orderType === 'LIMIT' ? ' active' : ''}`}
+                onClick={() => setOrderType('LIMIT')}
+              >
+                Limit
+              </button>
+              <button
+                type="button"
+                className={`btn-toggle${orderType === 'MARKET' ? ' active' : ''}`}
+                onClick={() => setOrderType('MARKET')}
+              >
+                Market
+              </button>
+            </div>
 
-          {orderType === 'LIMIT' && (
-            <label>
-              Price
+            <label className="field">
+              Quantity
               <input
                 type="number"
                 step="any"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
                 required
-                style={{ display: 'block', width: '100%' }}
+                placeholder="0.00"
               />
             </label>
-          )}
 
-          {message && <p style={{ color: 'green' }}>{message}</p>}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+            {orderType === 'LIMIT' && (
+              <label className="field">
+                Price
+                <input
+                  type="number"
+                  step="any"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                  placeholder="0.00"
+                />
+              </label>
+            )}
 
-          <button type="submit" disabled={submitting || !accountId}>
-            {submitting ? 'Placing order...' : 'Place Order'}
-          </button>
-        </form>
-      </div>
+            {message && <p className="form-message success">{message}</p>}
+            {error && <p className="form-message error">{error}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <PriceChart />
-        <OrderBook />
+            <button type="submit" className="btn btn-primary" disabled={submitting || !accountId}>
+              {submitting ? 'Placing order...' : `Place ${side === 'BUY' ? 'Buy' : 'Sell'} Order`}
+            </button>
+          </form>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, minWidth: '320px' }}>
+          <PriceChart />
+          <div className="card">
+            <OrderBook />
+          </div>
+        </div>
       </div>
     </div>
   )

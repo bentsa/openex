@@ -6,56 +6,42 @@ export default function Dashboard() {
   const [wallets, setWallets] = useState<WalletBalance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const email = useAuthStore((state) => state.email)
   const clearAuth = useAuthStore((state) => state.clearAuth)
 
   useEffect(() => {
-    let cancelled = false
-
-    async function fetchWallets() {
-      try {
-        const data = await getWallets()
-        if (!cancelled) {
-          setWallets(data)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load wallets')
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    fetchWallets()
-
-    return () => {
-      cancelled = true
-    }
+    getWallets()
+      .then(setWallets)
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Failed to load accounts')
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      {email && <p>Logged in as {email}</p>}
+      <div className="page-header">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="page-subtitle">
+          {email ? `Logged in as ${email}` : 'Your account overview'}
+        </p>
+      </div>
 
-      {loading && <p>Loading balances...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {loading && <p style={{ color: 'var(--text-dim)' }}>Loading balances...</p>}
+      {error && <p className="form-message error">{error}</p>}
 
       {!loading && !error && (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {wallets.map((wallet) => (
-            <li key={wallet.accountId} style={{ marginBottom: '0.5rem' }}>
-              <strong>{wallet.currency}:</strong> {wallet.balance}
-            </li>
+        <div className="stat-grid">
+          {wallets.map((wallet, i) => (
+            <div className={`stat-card${i === 0 ? ' primary' : ''}`} key={wallet.accountId}>
+              <span className="stat-card-label">{wallet.currency} Balance</span>
+              <span className="stat-card-value">{wallet.balance}</span>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
-      <button onClick={clearAuth} style={{ marginTop: '1rem' }}>
+      <button className="btn" onClick={clearAuth}>
         Log out
       </button>
     </div>

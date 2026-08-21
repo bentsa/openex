@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef } from "react"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -63,7 +63,7 @@ export default function PriceChart() {
     return (
       <div className="price-chart">
         <h3>BTC-USD Price</h3>
-        <p style={{ color: "red" }}>{error}</p>
+        <p className="form-message error">{error}</p>
       </div>
     )
   }
@@ -78,31 +78,32 @@ export default function PriceChart() {
       {
         label: "Price",
         data: ticks.map((t) => t.price),
-        borderColor: "#2563eb",
-        backgroundColor: "transparent",
+        borderColor: "#ff5fa2",
+        backgroundColor: "rgba(255, 95, 162, 0.08)",
+        fill: true,
         pointRadius: 0,
         borderWidth: 2,
-        tension: 0.1,
+        tension: 0.25,
       },
       {
         label: "MA 10",
         data: ticks.map((t) => t.ma_10),
-        borderColor: "#16a34a",
+        borderColor: "#17c787",
         backgroundColor: "transparent",
         pointRadius: 0,
         borderWidth: 1,
         borderDash: [4, 4],
-        tension: 0.1,
+        tension: 0.25,
       },
       {
         label: "MA 50",
         data: ticks.map((t) => t.ma_50),
-        borderColor: "#dc2626",
+        borderColor: "#8b5cf6",
         backgroundColor: "transparent",
         pointRadius: 0,
         borderWidth: 1,
         borderDash: [4, 4],
-        tension: 0.1,
+        tension: 0.25,
       },
     ],
   }
@@ -111,11 +112,24 @@ export default function PriceChart() {
     responsive: true,
     animation: false as const,
     plugins: {
-      legend: { position: "top" as const },
+      legend: {
+        position: "top" as const,
+        labels: { color: "#8891a8", boxWidth: 12, font: { size: 11 } },
+      },
     },
     scales: {
-      x: { ticks: { maxTicksLimit: 8 } },
-      y: { ticks: { callback: (value: string | number) => `$${value}` } },
+      x: {
+        ticks: { maxTicksLimit: 8, color: "#565d75", font: { size: 10 } },
+        grid: { color: "#242840" },
+      },
+      y: {
+        ticks: {
+          color: "#565d75",
+          font: { size: 10 },
+          callback: (value: string | number) => `$${value}`,
+        },
+        grid: { color: "#242840" },
+      },
     },
   }
 
