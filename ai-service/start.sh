@@ -2,5 +2,5 @@
 python app.py &
 ollama serve &
 sleep 5
-ollama pull mistral:7b-instruct-q4_K_M
+ollama pull qwen2.5:0.5b
 wait
