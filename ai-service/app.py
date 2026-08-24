@@ -105,7 +105,7 @@ def chat():
             except requests.RequestException as e:
                 tool_context = f"\n\n[Error fetching wallet data: {e}]"
 
-    chat_llm = ChatOllama(model="mistral", temperature=0.2)
+    chat_llm = ChatOllama(model="qwen2.5:0.5b", temperature=0.2)
     full_prompt = FINANCIAL_PERSONA + tool_context + f"\n\nUser: {user_message}\nAssistant:"
 
     response = chat_llm.invoke(full_prompt)
