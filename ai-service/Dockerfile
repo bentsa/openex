@@ -4,6 +4,7 @@ FROM python:3.12-slim
 
 # Copy Ollama binary from the ollama image
 COPY --from=ollama-base /bin/ollama /bin/ollama
+COPY --from=ollama-base /usr/lib/ollama /usr/lib/ollama
 
 WORKDIR /app
 COPY requirements.txt .
