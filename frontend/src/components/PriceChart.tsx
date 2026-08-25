@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+﻿import { useEffect, useState, useRef } from "react"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,6 +17,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const POLL_INTERVAL_MS = 5000
 
 export default function PriceChart() {
+  const [symbol, setSymbol] = useState("BTC-USD")
   const [ticks, setTicks] = useState<MarketTick[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -24,12 +25,12 @@ export default function PriceChart() {
 
   useEffect(() => {
     let cancelled = false
-
     async function fetchData() {
       try {
         const data = await getMarketData()
         if (!cancelled) {
           setTicks(data.ticks)
+          setSymbol(data.symbol)
           setError(null)
         }
       } catch (err) {
@@ -40,10 +41,8 @@ export default function PriceChart() {
         if (!cancelled) setLoading(false)
       }
     }
-
     fetchData()
     intervalRef.current = window.setInterval(fetchData, POLL_INTERVAL_MS)
-
     return () => {
       cancelled = true
       if (intervalRef.current) window.clearInterval(intervalRef.current)
@@ -53,7 +52,7 @@ export default function PriceChart() {
   if (loading) {
     return (
       <div className="price-chart">
-        <h3>BTC-USD Price</h3>
+        <h3>{symbol} Price</h3>
         <div className="orderbook-empty">Loading market data...</div>
       </div>
     )
@@ -62,11 +61,18 @@ export default function PriceChart() {
   if (error) {
     return (
       <div className="price-chart">
-        <h3>BTC-USD Price</h3>
+        <h3>{symbol} Price</h3>
         <p className="form-message error">{error}</p>
       </div>
     )
   }
+
+  const pricedTicks = ticks.filter((t) => t.price !== null)
+  const latestPrice = pricedTicks.length > 0 ? pricedTicks[pricedTicks.length - 1].price! : null
+  const firstPrice = pricedTicks.length > 0 ? pricedTicks[0].price! : null
+  const change = latestPrice !== null && firstPrice !== null ? latestPrice - firstPrice : null
+  const changePct = change !== null && firstPrice ? (change / firstPrice) * 100 : null
+  const isUp = change !== null && change >= 0
 
   const labels = ticks.map((t) =>
     new Date(t.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
@@ -135,7 +141,21 @@ export default function PriceChart() {
 
   return (
     <div className="price-chart">
-      <h3>BTC-USD Price</h3>
+      <div className="price-ticker-header">
+        <h3>{symbol}</h3>
+        {latestPrice !== null && (
+          <div className="price-ticker">
+            <span className="price-ticker-value">
+              ${latestPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            {change !== null && changePct !== null && (
+              <span className={`price-ticker-change ${isUp ? "positive" : "negative"}`}>
+                {isUp ? "\u25B2" : "\u25BC"} {Math.abs(change).toFixed(2)} ({Math.abs(changePct).toFixed(2)}%)
+              </span>
+            )}
+          </div>
+        )}
+      </div>
       <Line data={data} options={options} />
     </div>
   )
