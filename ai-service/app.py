@@ -62,7 +62,8 @@ def health():
 
 
 # --- AI trading assistant (Day 13: tool calling against the Kotlin wallets API) ---
-
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
+chat_llm = ChatOllama(model=OLLAMA_MODEL, temperature=0.2)
 KOTLIN_API_BASE = os.environ.get("KOTLIN_API_BASE", "http://localhost:8080")
 
 FINANCIAL_PERSONA = """You are a knowledgeable but cautious financial assistant for OpenEx,
@@ -105,7 +106,6 @@ def chat():
             except requests.RequestException as e:
                 tool_context = f"\n\n[Error fetching wallet data: {e}]"
 
-    chat_llm = ChatOllama(model="qwen2.5:0.5b", temperature=0.2)
     full_prompt = FINANCIAL_PERSONA + tool_context + f"\n\nUser: {user_message}\nAssistant:"
 
     response = chat_llm.invoke(full_prompt)

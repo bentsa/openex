@@ -6,6 +6,7 @@ services:
       POSTGRES_DB: openex
       POSTGRES_USER: openex
       POSTGRES_PASSWORD: openex
+
     ports:
       - "5432:5432"
     volumes:
@@ -27,5 +28,65 @@ services:
       timeout: 5s
       retries: 5
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: openex-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - openex-ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: openex-backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/openex
+      DATABASE_USERNAME: openex
+      DATABASE_PASSWORD: openex
+      CORS_ALLOWED_ORIGIN: http://localhost:5173
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  ai-service:
+    build: ./ai-service
+    container_name: openex-ai-service
+    environment:
+      OLLAMA_MODEL: qwen2.5:0.5b
+      PORT: 5001
+      CORS_ALLOWED_ORIGIN: http://localhost:5173
+      KOTLIN_API_BASE: http://backend:8080
+      OLLAMA_HOST: http://ollama:11434
+    ports:
+      - "5001:5001"
+    depends_on:
+      ollama:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    container_name: openex-frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api
+      VITE_AI_SERVICE_URL: http://localhost:5001/api
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+      - ai-service
+
 volumes:
   openex-pg-data:
+  openex-ollama-data:
