@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { getWallets, deposit, type WalletBalance } from '../api/wallet'
 import { getOrders, type OrderResponse } from '../api/orders'
 import { useAuthStore } from '../store/authStore'
@@ -94,7 +94,7 @@ export default function Dashboard() {
 
           <div className="card" style={{ marginTop: '1.5rem' }}>
             <h2 className="section-title">Deposit funds</h2>
-            <form onSubmit={handleDeposit} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <form onSubmit={handleDeposit} className="deposit-form" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               <div>
                 <label>Currency</label>
                 <select value={depositCurrency} onChange={(e) => setDepositCurrency(e.target.value)}>

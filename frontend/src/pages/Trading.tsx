@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { createOrder, type OrderSide, type OrderType } from '../api/orders'
 import { getWallets, type WalletBalance } from '../api/wallet'
 import OrderBook from '../components/OrderBook'
@@ -61,10 +61,10 @@ export default function Trading() {
       </div>
 
       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <div className="card" style={{ width: '300px', flexShrink: 0 }}>
+        <div className="card order-form-card" style={{ width: '280px', flexShrink: 0 }}>
           <div className="card-title">New Order</div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
             <label className="field">
               Account
               <select value={accountId} onChange={(e) => setAccountId(e.target.value)} required>

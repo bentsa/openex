@@ -12,6 +12,11 @@ export default function OrderBook() {
         </span>
       </div>
 
+      <div className="orderbook-columns">
+        <span>Price</span>
+        <span>Qty</span>
+      </div>
+
       <div className="orderbook-side asks">
         {snapshot.asks.length === 0 && <div className="orderbook-empty">No asks</div>}
         {snapshot.asks

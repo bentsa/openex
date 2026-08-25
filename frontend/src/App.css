@@ -1,4 +1,4 @@
-/* ===== Layout shell ===== */
+﻿/* ===== Layout shell ===== */
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -310,6 +310,40 @@
   font-size: 0.85rem;
 }
 
+/* ===== Order form (tighter) ===== */
+.order-form-card {
+  padding: 1rem 1.1rem;
+}
+
+.order-form-card .card-title {
+  margin-bottom: 0.85rem;
+}
+
+.order-form-card .field {
+  gap: 0.3rem;
+  font-size: 0.8rem;
+}
+
+.order-form-card .field input,
+.order-form-card .field select {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.85rem;
+}
+
+.order-form-card .btn-toggle-group {
+  padding: 0.2rem;
+}
+
+.order-form-card .btn-toggle {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.order-form-card .btn-primary {
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+}
+
 /* ===== Order book ===== */
 .orderbook {
   display: flex;
@@ -345,16 +379,17 @@
 .orderbook-side {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .orderbook-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-family: 'Space Grotesk', monospace;
-  padding: 0.28rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.16rem 0.5rem;
+  border-radius: 3px;
+  line-height: 1.5;
 }
 
 .orderbook-row.ask {
@@ -463,105 +498,134 @@
   margin-top: 1.25rem;
 }
 
-/* ---- Right-hand gradient visual panel ---- */
+/* ---- Right-hand market panel ---- */
 .auth-panel-visual {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  background: var(--gradient);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
   position: relative;
   overflow: hidden;
 }
 
-.auth-panel-visual::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 45%),
-    radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.15), transparent 50%);
-  pointer-events: none;
-}
-
 .auth-visual-content {
   position: relative;
-  max-width: 420px;
-  color: white;
+  max-width: 440px;
+  width: 100%;
+}
+
+.auth-visual-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--purple);
+  margin-bottom: 0.85rem;
 }
 
 .auth-visual-heading {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
   margin: 0 0 0.85rem;
+  color: var(--text);
 }
 
 .auth-visual-subheading {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 2.25rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+  margin: 0 0 1.5rem;
 }
 
-.auth-preview-card {
-  background: rgba(18, 20, 31, 0.72);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius);
-  padding: 1.25rem 1.4rem 1.4rem;
-  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.5);
-}
-
-.auth-preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 0.75rem;
-}
-
-.auth-preview-price {
-  font-family: 'Space Grotesk', sans-serif;
-}
-
-.auth-preview-sparkline {
-  width: 100%;
-  height: 60px;
-  display: block;
-  margin-bottom: 0.9rem;
-}
-
-.auth-preview-stats {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  padding-top: 0.85rem;
-}
-
-.auth-preview-stat {
+.auth-feature-list {
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.6rem;
 }
 
-.auth-preview-stat-label {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.65);
+.auth-feature-list li {
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  padding-left: 1.3rem;
+  position: relative;
+  line-height: 1.4;
 }
 
-.auth-preview-stat-value {
-  font-size: 0.9rem;
+.auth-feature-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.4rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--gradient);
+}
+
+.auth-watchlist {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-family: var(--mono);
+}
+
+.auth-watchlist-header,
+.auth-watchlist-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.8fr;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.78rem;
+}
+
+.auth-watchlist-header {
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.68rem;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-watchlist-row {
+  border-bottom: 1px solid var(--border);
+}
+
+.auth-watchlist-row:last-child {
+  border-bottom: none;
+}
+
+.auth-watchlist-symbol {
+  color: var(--text);
   font-weight: 600;
-  color: white;
+  font-family: 'Inter', sans-serif;
 }
 
-.auth-preview-stat-value.positive {
-  color: #4ade80;
+.auth-watchlist-price {
+  color: var(--text);
+  text-align: right;
+}
+
+.auth-watchlist-change {
+  text-align: right;
+  font-weight: 600;
+}
+
+.auth-watchlist-change.positive {
+  color: var(--green);
+}
+
+.auth-watchlist-change.negative {
+  color: var(--red);
 }
 
 @media (max-width: 900px) {
@@ -705,4 +769,164 @@
 .chat-input-row button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* ===== Data table (trade history etc.) ===== */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.data-table thead th {
+  text-align: left;
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0 0.75rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table tbody td {
+  padding: 0.65rem 0.75rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono, 'Space Grotesk', monospace);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover td {
+  background: var(--surface-2);
+}
+
+.data-table td.text-green {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.data-table td.text-red {
+  color: var(--red);
+  font-weight: 600;
+}
+
+/* ===== Deposit form ===== */
+.deposit-form label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+.deposit-form select,
+.deposit-form input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.deposit-form select:focus,
+.deposit-form input:focus {
+  border-color: var(--purple);
+  outline: none;
+}
+
+.deposit-form input {
+  width: 140px;
+}
+
+.deposit-form .btn {
+  padding: 0.6rem 1.1rem;
+}
+
+/* ===== Order book column labels ===== */
+.orderbook-columns {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.5rem 0.3rem;
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.3rem;
+}
+
+/* ===== Price ticker header ===== */
+.price-ticker-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.price-ticker {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.price-ticker-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.price-ticker-change {
+  font-family: var(--mono, 'Space Grotesk', monospace);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.price-ticker-change.positive {
+  color: var(--green);
+}
+
+.price-ticker-change.negative {
+  color: var(--red);
+}
+
+/* ===== Price ticker header ===== */
+.price-ticker-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.price-ticker {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.price-ticker-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.price-ticker-change {
+  font-family: var(--mono, 'Space Grotesk', monospace);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.price-ticker-change.positive {
+  color: var(--green);
+}
+
+.price-ticker-change.negative {
+  color: var(--red);
 }

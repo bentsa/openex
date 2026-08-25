@@ -1,7 +1,13 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginUser, registerUser } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
+
+const WATCHLIST = [
+  { symbol: 'BTC/USD', price: '63,265.40', change: '+3.42%', positive: true },
+  { symbol: 'ETH/USD', price: '3,184.12', change: '+1.85%', positive: true },
+  { symbol: 'SOL/USD', price: '142.07', change: '-0.64%', positive: false },
+]
 
 export default function Login() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -82,7 +88,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="••••••••"
+                placeholder="********"
               />
             </label>
 
@@ -97,44 +103,37 @@ export default function Login() {
 
       <div className="auth-panel-visual">
         <div className="auth-visual-content">
+          <span className="auth-visual-eyebrow">OpenEx Terminal</span>
           <h2 className="auth-visual-heading">
-            The easiest way to trade your portfolio.
+            Trade with the precision of a real exchange.
           </h2>
           <p className="auth-visual-subheading">
-            Live prices, real-time order books, and an AI assistant — all in one terminal.
+            A live matching engine, real-time order books over WebSockets, and an
+            AI trading assistant that reads your actual portfolio - built to feel
+            like the desk, not a demo.
           </p>
 
-          <div className="auth-preview-card">
-            <div className="auth-preview-header">
-              <span>BTC/USD</span>
-              <span className="auth-preview-price">$63,265</span>
+          <ul className="auth-feature-list">
+            <li>Real-time price feeds and order book depth</li>
+            <li>Limit and market orders against a live matching engine</li>
+            <li>AI assistant with direct wallet and trade-history access</li>
+          </ul>
+
+          <div className="auth-watchlist">
+            <div className="auth-watchlist-header">
+              <span>Market</span>
+              <span>Last</span>
+              <span>24h</span>
             </div>
-            <svg className="auth-preview-sparkline" viewBox="0 0 240 60" preserveAspectRatio="none">
-              <polyline
-                points="0,40 20,35 40,42 60,28 80,32 100,20 120,25 140,15 160,22 180,10 200,18 220,8 240,14"
-                fill="none"
-                stroke="url(#sparkGradient)"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <defs>
-                <linearGradient id="sparkGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#ff5fa2" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="auth-preview-stats">
-              <div className="auth-preview-stat">
-                <span className="auth-preview-stat-label">24h Change</span>
-                <span className="auth-preview-stat-value positive">+3.42%</span>
+            {WATCHLIST.map((row) => (
+              <div className="auth-watchlist-row" key={row.symbol}>
+                <span className="auth-watchlist-symbol">{row.symbol}</span>
+                <span className="auth-watchlist-price">${row.price}</span>
+                <span className={`auth-watchlist-change ${row.positive ? 'positive' : 'negative'}`}>
+                  {row.change}
+                </span>
               </div>
-              <div className="auth-preview-stat">
-                <span className="auth-preview-stat-label">Volume</span>
-                <span className="auth-preview-stat-value">$1.2B</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
