@@ -106,6 +106,69 @@ class MatchingEngineServiceTest {
     }
 
     @Test
+    fun `a filled trade settles both legs - buyer receives the asset, seller receives the cash`() {
+        val buyerAccount = createAccount() // USD account
+        val sellerAccount = createAccount() // USD account
+        val buyerUserId = buyerAccount.userId
+        val sellerUserId = sellerAccount.userId
+
+        orderRepository.save(
+            Order(
+                accountId = sellerAccount.id,
+                side = OrderSide.SELL,
+                orderType = OrderType.LIMIT,
+                price = BigDecimal("100.00"),
+                quantity = BigDecimal("2")
+            )
+        )
+
+        matchingEngineService.submitOrder(
+            Order(
+                accountId = buyerAccount.id,
+                side = OrderSide.BUY,
+                orderType = OrderType.LIMIT,
+                price = BigDecimal("100.00"),
+                quantity = BigDecimal("2")
+            )
+        )
+
+        val buyerBtcAccount = accountRepository.findByUserIdAndCurrency(buyerUserId, "BTC")
+        val sellerBtcAccount = accountRepository.findByUserIdAndCurrency(sellerUserId, "BTC")
+        val sellerUsdAccount = accountRepository.findByUserIdAndCurrency(sellerUserId, "USD")
+
+        assertTrue(buyerBtcAccount != null, "Buyer should have had a BTC account created to receive the asset")
+        assertEquals(
+            0,
+            BigDecimal("2").compareTo(
+                ledgerEntryRepository.findByAccountId(buyerBtcAccount!!.id)
+                    .filter { e -> e.direction == com.openex.core.ledger.EntryDirection.CREDIT }
+                    .sumOf { e -> e.amount }
+            ),
+            "Buyer's BTC account should be credited the traded quantity"
+        )
+
+        assertEquals(
+            0,
+            BigDecimal("2").compareTo(
+                ledgerEntryRepository.findByAccountId(sellerBtcAccount!!.id)
+                    .filter { e -> e.direction == com.openex.core.ledger.EntryDirection.DEBIT }
+                    .sumOf { e -> e.amount }
+            ),
+            "Seller's BTC account should be debited the traded quantity"
+        )
+
+        assertEquals(
+            0,
+            BigDecimal("200.00").compareTo(
+                ledgerEntryRepository.findByAccountId(sellerUsdAccount!!.id)
+                    .filter { e -> e.direction == com.openex.core.ledger.EntryDirection.CREDIT }
+                    .sumOf { e -> e.amount }
+            ),
+            "Seller's USD account should be credited price * quantity"
+        )
+    }
+
+    @Test
     fun `orders that do not cross in price do not match`() {
         val buyerAccount = createAccount()
         val sellerAccount = createAccount()

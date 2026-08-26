@@ -1,5 +1,7 @@
 package com.openex.core.matching
 
+import com.openex.core.ledger.Account
+import com.openex.core.ledger.AccountRepository
 import com.openex.core.ledger.EntryDirection
 import com.openex.core.ledger.LedgerPosting
 import com.openex.core.ledger.LedgerService
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.math.BigDecimal
+import java.util.UUID
 
 
 @Service
@@ -31,9 +34,17 @@ class MatchingEngineService(
 class OrderMatcher(
     private val orderRepository: OrderRepository,
     private val tradeRepository: TradeRepository,
+    private val accountRepository: AccountRepository,
     private val ledgerService: LedgerService,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
+    companion object {
+        // Single-pair simulated exchange: every order's account trades against
+        // this asset (BASE) priced in this currency (QUOTE). Matches the pair
+        // WalletController provisions accounts for.
+        const val BASE_CURRENCY = "BTC"
+        const val QUOTE_CURRENCY = "USD"
+    }
 
     @Transactional
     fun match(incomingOrder: Order): Order {
@@ -139,11 +150,31 @@ class OrderMatcher(
 
         val notional = price.multiply(quantity)
 
+        // A trade moves TWO assets, not one: the quote currency (USD) flows
+        // buyer -> seller, and the base currency (BTC) flows seller -> buyer.
+        // Settling only the notional leg (the previous behavior) left the
+        // traded asset itself never actually delivered to the buyer.
+        val buyerUserId = accountRepository.findById(buyOrder.accountId)
+            .orElseThrow { IllegalStateException("Account ${buyOrder.accountId} does not exist") }.userId
+        val sellerUserId = accountRepository.findById(sellOrder.accountId)
+            .orElseThrow { IllegalStateException("Account ${sellOrder.accountId} does not exist") }.userId
+
+        val buyerQuoteAccount = findOrCreateAccount(buyerUserId, QUOTE_CURRENCY)
+        val buyerBaseAccount = findOrCreateAccount(buyerUserId, BASE_CURRENCY)
+        val sellerQuoteAccount = findOrCreateAccount(sellerUserId, QUOTE_CURRENCY)
+        val sellerBaseAccount = findOrCreateAccount(sellerUserId, BASE_CURRENCY)
+
         ledgerService.postTransaction(
             listOf(
-                LedgerPosting(sellOrder.accountId, notional, EntryDirection.DEBIT),
-                LedgerPosting(buyOrder.accountId, notional, EntryDirection.CREDIT)
+                LedgerPosting(buyerQuoteAccount.id, notional, EntryDirection.DEBIT),
+                LedgerPosting(sellerQuoteAccount.id, notional, EntryDirection.CREDIT),
+                LedgerPosting(sellerBaseAccount.id, quantity, EntryDirection.DEBIT),
+                LedgerPosting(buyerBaseAccount.id, quantity, EntryDirection.CREDIT)
             )
         )
     }
+
+    private fun findOrCreateAccount(userId: UUID, currency: String): Account =
+        accountRepository.findByUserIdAndCurrency(userId, currency)
+            ?: accountRepository.save(Account(userId = userId, currency = currency))
 }
