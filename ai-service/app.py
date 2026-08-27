@@ -1,9 +1,12 @@
-﻿from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from langchain_ollama import ChatOllama
+from langchain_core.tools import tool
+from langchain_core.messages import HumanMessage
+from langgraph.prebuilt import create_react_agent
 import requests
 import os
 
@@ -61,9 +64,16 @@ def health():
     return jsonify({"status": "ok"})
 
 
-# --- AI trading assistant (Day 13: tool calling against the Kotlin wallets API) ---
+# --- AI trading assistant (Day 13: agentic tool calling against the Kotlin wallets API) ---
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral")
-chat_llm = ChatOllama(model=OLLAMA_MODEL, temperature=0.2)
+
+# Bug fix: the OLLAMA_HOST env var set in docker-compose.yml (e.g.
+# "http://ollama:11434") was previously never passed into ChatOllama, which
+# defaults to localhost:11434. Inside Docker that would silently fail to
+# reach the ollama container. base_url must be set explicitly.
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+
+chat_llm = ChatOllama(model=OLLAMA_MODEL, base_url=OLLAMA_BASE_URL, temperature=0.2)
 KOTLIN_API_BASE = os.environ.get("KOTLIN_API_BASE", "http://localhost:8080")
 
 FINANCIAL_PERSONA = """You are a knowledgeable but cautious financial assistant for OpenEx,
@@ -71,8 +81,41 @@ a simulated crypto trading platform. You help users understand trading concepts,
 terminology, and general financial literacy. You do not give specific buy/sell advice or
 guarantee outcomes - you educate and explain. Keep answers concise and clear.
 
-If [REAL WALLET DATA] is included below, use those exact numbers when answering
-questions about the user's balance, holdings, or wallet. Do not make up numbers."""
+You have a tool available called get_wallet_balance. Use it whenever the user asks about
+their balance, funds, holdings, or how much of something they own. Never guess or make up
+balance numbers - always call the tool to get the real figures first."""
+
+
+def make_wallet_balance_tool(auth_header: str | None):
+    """
+    Builds the get_wallet_balance LangChain tool for a single request, closing
+    over that request's Authorization header so the tool call is scoped to
+    the authenticated user making the chat request (Day 13 requirement:
+    "Register this function as a tool in LangChain so the LLM can securely
+    use it to answer user questions about their balance").
+    """
+
+    @tool
+    def get_wallet_balance() -> str:
+        """Look up the authenticated user's current OpenEx wallet balances
+        (USD and BTC). Call this whenever the user asks about their balance,
+        funds, holdings, or how much they have."""
+        if not auth_header:
+            return "No auth token was provided, so wallet data is unavailable."
+
+        try:
+            resp = requests.get(
+                f"{KOTLIN_API_BASE}/api/wallets",
+                headers={"Authorization": auth_header},
+                timeout=5,
+            )
+            resp.raise_for_status()
+            wallets = resp.json()
+            return "; ".join(f"{w['currency']}: {w['balance']}" for w in wallets)
+        except requests.RequestException as e:
+            return f"Error fetching wallet data: {e}"
+
+    return get_wallet_balance
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -85,33 +128,14 @@ def chat():
     user_message = data["message"]
     auth_header = request.headers.get("Authorization")
 
-    balance_keywords = ["balance", "wallet", "holdings", "funds", "how much"]
-    needs_balance = any(kw in user_message.lower() for kw in balance_keywords)
+    wallet_tool = make_wallet_balance_tool(auth_header)
+    agent = create_react_agent(model=chat_llm, tools=[wallet_tool], prompt=FINANCIAL_PERSONA)
 
-    tool_context = ""
-    if needs_balance:
-        if not auth_header:
-            tool_context = "\n\n[No auth token was provided, so real wallet data is unavailable.]"
-        else:
-            try:
-                resp = requests.get(
-                    f"{KOTLIN_API_BASE}/api/wallets",
-                    headers={"Authorization": auth_header},
-                    timeout=5,
-                )
-                resp.raise_for_status()
-                wallets = resp.json()
-                lines = [f"{w['currency']}: {w['balance']}" for w in wallets]
-                tool_context = "\n\n[REAL WALLET DATA]\n" + "\n".join(lines)
-            except requests.RequestException as e:
-                tool_context = f"\n\n[Error fetching wallet data: {e}]"
-
-    full_prompt = FINANCIAL_PERSONA + tool_context + f"\n\nUser: {user_message}\nAssistant:"
-
-    response = chat_llm.invoke(full_prompt)
+    result = agent.invoke({"messages": [HumanMessage(content=user_message)]})
+    final_message = result["messages"][-1]
 
     return jsonify({
-        "response": response.content.strip()
+        "response": final_message.content.strip()
     })
 
 
