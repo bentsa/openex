@@ -18,7 +18,6 @@ data class ApiError(val status: Int, val error: String, val message: String?)
  */
 @RestControllerAdvice
 class GlobalExceptionHandler {
-
     @ExceptionHandler(ForbiddenAccountAccessException::class)
     fun handleForbidden(ex: ForbiddenAccountAccessException): ResponseEntity<ApiError> =
         ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -36,8 +35,9 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException): ResponseEntity<ApiError> {
-        val message = ex.bindingResult.fieldErrors
-            .joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
+        val message =
+            ex.bindingResult.fieldErrors
+                .joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiError(HttpStatus.BAD_REQUEST.value(), "Bad Request", message))
     }

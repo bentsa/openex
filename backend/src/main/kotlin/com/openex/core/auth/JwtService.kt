@@ -11,7 +11,7 @@ import javax.crypto.SecretKey
 @Service
 class JwtService(
     @Value("\${app.jwt.secret}") private val secret: String,
-    @Value("\${app.jwt.expiration-ms}") private val expirationMs: Long
+    @Value("\${app.jwt.expiration-ms}") private val expirationMs: Long,
 ) {
     private val signingKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(secret.toByteArray())
@@ -31,13 +31,15 @@ class JwtService(
 
     fun extractEmail(token: String): String = extractClaims(token).subject
 
-    fun isTokenValid(token: String, email: String): Boolean {
+    fun isTokenValid(
+        token: String,
+        email: String,
+    ): Boolean {
         val extractedEmail = extractEmail(token)
         return extractedEmail == email && !isTokenExpired(token)
     }
 
-    private fun isTokenExpired(token: String): Boolean =
-        extractClaims(token).expiration.before(Date())
+    private fun isTokenExpired(token: String): Boolean = extractClaims(token).expiration.before(Date())
 
     private fun extractClaims(token: String): Claims =
         Jwts.parser()

@@ -12,13 +12,10 @@ data class IdempotencyKey(
     @Id
     @Column(name = "idempotency_key")
     val key: String,
-
     @Column(name = "response_body", nullable = false, columnDefinition = "TEXT")
     val responseBody: String,
-
     @Column(name = "status_code", nullable = false)
     val statusCode: Int,
-
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 )

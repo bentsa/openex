@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit
 @SpringBootTest
 @Transactional
 class MatchingEngineServiceTest {
-
     @Autowired
     lateinit var matchingEngineService: MatchingEngineService
 
@@ -39,31 +38,32 @@ class MatchingEngineServiceTest {
     @Autowired
     lateinit var ledgerEntryRepository: com.openex.core.ledger.LedgerEntryRepository
 
-    private fun createAccount(): Account =
-        accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
+    private fun createAccount(): Account = accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
 
     @Test
     fun `matching buy and sell limit orders at the same price executes a trade`() {
         val buyerAccount = createAccount()
         val sellerAccount = createAccount()
 
-        val sellOrder = orderRepository.save(
+        val sellOrder =
+            orderRepository.save(
+                Order(
+                    accountId = sellerAccount.id,
+                    side = OrderSide.SELL,
+                    orderType = OrderType.LIMIT,
+                    price = BigDecimal("100.00"),
+                    quantity = BigDecimal("10"),
+                ),
+            )
+
+        val buyOrder =
             Order(
-                accountId = sellerAccount.id,
-                side = OrderSide.SELL,
+                accountId = buyerAccount.id,
+                side = OrderSide.BUY,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("100.00"),
-                quantity = BigDecimal("10")
+                quantity = BigDecimal("10"),
             )
-        )
-
-        val buyOrder = Order(
-            accountId = buyerAccount.id,
-            side = OrderSide.BUY,
-            orderType = OrderType.LIMIT,
-            price = BigDecimal("100.00"),
-            quantity = BigDecimal("10")
-        )
 
         val result = matchingEngineService.submitOrder(buyOrder)
 
@@ -87,17 +87,18 @@ class MatchingEngineServiceTest {
                 side = OrderSide.SELL,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("100.00"),
-                quantity = BigDecimal("5")
-            )
+                quantity = BigDecimal("5"),
+            ),
         )
 
-        val buyOrder = Order(
-            accountId = buyerAccount.id,
-            side = OrderSide.BUY,
-            orderType = OrderType.LIMIT,
-            price = BigDecimal("100.00"),
-            quantity = BigDecimal("10")
-        )
+        val buyOrder =
+            Order(
+                accountId = buyerAccount.id,
+                side = OrderSide.BUY,
+                orderType = OrderType.LIMIT,
+                price = BigDecimal("100.00"),
+                quantity = BigDecimal("10"),
+            )
 
         val result = matchingEngineService.submitOrder(buyOrder)
 
@@ -118,8 +119,8 @@ class MatchingEngineServiceTest {
                 side = OrderSide.SELL,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("100.00"),
-                quantity = BigDecimal("2")
-            )
+                quantity = BigDecimal("2"),
+            ),
         )
 
         matchingEngineService.submitOrder(
@@ -128,8 +129,8 @@ class MatchingEngineServiceTest {
                 side = OrderSide.BUY,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("100.00"),
-                quantity = BigDecimal("2")
-            )
+                quantity = BigDecimal("2"),
+            ),
         )
 
         val buyerBtcAccount = accountRepository.findByUserIdAndCurrency(buyerUserId, "BTC")
@@ -142,9 +143,9 @@ class MatchingEngineServiceTest {
             BigDecimal("2").compareTo(
                 ledgerEntryRepository.findByAccountId(buyerBtcAccount!!.id)
                     .filter { e -> e.direction == com.openex.core.ledger.EntryDirection.CREDIT }
-                    .sumOf { e -> e.amount }
+                    .sumOf { e -> e.amount },
             ),
-            "Buyer's BTC account should be credited the traded quantity"
+            "Buyer's BTC account should be credited the traded quantity",
         )
 
         assertEquals(
@@ -152,9 +153,9 @@ class MatchingEngineServiceTest {
             BigDecimal("2").compareTo(
                 ledgerEntryRepository.findByAccountId(sellerBtcAccount!!.id)
                     .filter { e -> e.direction == com.openex.core.ledger.EntryDirection.DEBIT }
-                    .sumOf { e -> e.amount }
+                    .sumOf { e -> e.amount },
             ),
-            "Seller's BTC account should be debited the traded quantity"
+            "Seller's BTC account should be debited the traded quantity",
         )
 
         assertEquals(
@@ -162,9 +163,9 @@ class MatchingEngineServiceTest {
             BigDecimal("200.00").compareTo(
                 ledgerEntryRepository.findByAccountId(sellerUsdAccount!!.id)
                     .filter { e -> e.direction == com.openex.core.ledger.EntryDirection.CREDIT }
-                    .sumOf { e -> e.amount }
+                    .sumOf { e -> e.amount },
             ),
-            "Seller's USD account should be credited price * quantity"
+            "Seller's USD account should be credited price * quantity",
         )
     }
 
@@ -179,17 +180,18 @@ class MatchingEngineServiceTest {
                 side = OrderSide.SELL,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("110.00"),
-                quantity = BigDecimal("5")
-            )
+                quantity = BigDecimal("5"),
+            ),
         )
 
-        val buyOrder = Order(
-            accountId = buyerAccount.id,
-            side = OrderSide.BUY,
-            orderType = OrderType.LIMIT,
-            price = BigDecimal("100.00"),
-            quantity = BigDecimal("5")
-        )
+        val buyOrder =
+            Order(
+                accountId = buyerAccount.id,
+                side = OrderSide.BUY,
+                orderType = OrderType.LIMIT,
+                price = BigDecimal("100.00"),
+                quantity = BigDecimal("5"),
+            )
 
         val result = matchingEngineService.submitOrder(buyOrder)
 
@@ -209,8 +211,8 @@ class MatchingEngineServiceTest {
                 side = OrderSide.SELL,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("50.00"),
-                quantity = BigDecimal("100")
-            )
+                quantity = BigDecimal("100"),
+            ),
         )
 
         val executor = Executors.newFixedThreadPool(10)
@@ -220,13 +222,14 @@ class MatchingEngineServiceTest {
         buyerAccounts.forEach { account ->
             executor.submit {
                 try {
-                    val buyOrder = Order(
-                        accountId = account.id,
-                        side = OrderSide.BUY,
-                        orderType = OrderType.LIMIT,
-                        price = BigDecimal("50.00"),
-                        quantity = BigDecimal("10")
-                    )
+                    val buyOrder =
+                        Order(
+                            accountId = account.id,
+                            side = OrderSide.BUY,
+                            orderType = OrderType.LIMIT,
+                            price = BigDecimal("50.00"),
+                            quantity = BigDecimal("10"),
+                        )
                     results.add(matchingEngineService.submitOrder(buyOrder))
                 } finally {
                     latch.countDown()
@@ -237,29 +240,34 @@ class MatchingEngineServiceTest {
         assertTrue(latch.await(30, TimeUnit.SECONDS), "All concurrent orders should complete within timeout")
         executor.shutdown()
 
-
         val totalFilled = results.sumOf { it.filledQuantity }
-        assertEquals(0, totalFilled.compareTo(BigDecimal("100")), "Total filled quantity across all buyers must equal the resting sell quantity")
+        assertEquals(
+            0,
+            totalFilled.compareTo(BigDecimal("100")),
+            "Total filled quantity across all buyers must equal the resting sell quantity",
+        )
 
         val trades = tradeRepository.findAll()
         assertTrue(trades.isNotEmpty(), "At least one trade should have been executed")
 
-       results.forEach { order ->
+        results.forEach { order ->
             assertTrue(accountRepository.existsById(order.accountId), "Account must still exist after concurrent matching")
         }
 
-        tradeRepository.deleteAll(tradeRepository.findAll().filter { trade ->
-            results.any { it.id == trade.buyOrderId || it.id == trade.sellOrderId }
-        })
+        tradeRepository.deleteAll(
+            tradeRepository.findAll().filter { trade ->
+                results.any { it.id == trade.buyOrderId || it.id == trade.sellOrderId }
+            },
+        )
         orderRepository.deleteAll(results.map { orderRepository.findById(it.id).orElse(null) }.filterNotNull())
 
         val allAccountIds = (buyerAccounts.map { it.id } + sellerAccount.id).toSet()
         ledgerEntryRepository.deleteAll(
-            ledgerEntryRepository.findAll().filter { it.accountId in allAccountIds }
+            ledgerEntryRepository.findAll().filter { it.accountId in allAccountIds },
         )
 
         orderRepository.deleteById(
-            orderRepository.findAll().first { o -> o.accountId == sellerAccount.id }.id
+            orderRepository.findAll().first { o -> o.accountId == sellerAccount.id }.id,
         )
         accountRepository.deleteAll(buyerAccounts + sellerAccount)
     }

@@ -26,29 +26,30 @@ class OrderController(
     private val accountRepository: AccountRepository,
     private val userRepository: UserRepository,
     private val idempotencyService: IdempotencyService,
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
 ) {
-
     @PostMapping
     fun createOrder(
         authentication: Authentication,
         @RequestHeader("Idempotency-Key") idempotencyKey: String,
-        @Valid @RequestBody request: CreateOrderRequest
+        @Valid @RequestBody request: CreateOrderRequest,
     ): ResponseEntity<OrderResponse> {
         return idempotencyService.executeIdempotently(
             key = idempotencyKey,
-            responseType = OrderResponse::class.java
+            responseType = OrderResponse::class.java,
         ) {
-            val account = accountRepository.findById(request.accountId)
-                .orElseThrow { IllegalArgumentException("Account ${request.accountId} does not exist") }
+            val account =
+                accountRepository.findById(request.accountId)
+                    .orElseThrow { IllegalArgumentException("Account ${request.accountId} does not exist") }
 
             // Ownership check: a JWT only authorizes orders against accounts the
             // caller actually owns, otherwise anyone could drain another user's wallet.
-            val callingUser = userRepository.findByEmail(authentication.name)
-                ?: throw IllegalStateException("Authenticated user ${authentication.name} not found")
+            val callingUser =
+                userRepository.findByEmail(authentication.name)
+                    ?: throw IllegalStateException("Authenticated user ${authentication.name} not found")
             if (account.userId != callingUser.id) {
                 throw ForbiddenAccountAccessException(
-                    "Account ${request.accountId} does not belong to the authenticated user"
+                    "Account ${request.accountId} does not belong to the authenticated user",
                 )
             }
 
@@ -59,25 +60,29 @@ class OrderController(
                 require(request.price > java.math.BigDecimal.ZERO) { "Price must be positive" }
             }
 
-            val order = matchingEngineService.submitOrder(
-                Order(
-                    accountId = request.accountId,
-                    side = request.side,
-                    orderType = request.orderType,
-                    price = request.price,
-                    quantity = request.quantity
+            val order =
+                matchingEngineService.submitOrder(
+                    Order(
+                        accountId = request.accountId,
+                        side = request.side,
+                        orderType = request.orderType,
+                        price = request.price,
+                        quantity = request.quantity,
+                    ),
                 )
-            )
 
             ResponseEntity.status(HttpStatus.CREATED).body(order.toResponse())
         }
     }
 
     @GetMapping
-    fun getOrders(@RequestParam accountId: UUID): ResponseEntity<List<OrderResponse>> {
-        val orders = orderRepository.findByAccountId(accountId)
-            .sortedByDescending { it.createdAt }
-            .map { it.toResponse() }
+    fun getOrders(
+        @RequestParam accountId: UUID,
+    ): ResponseEntity<List<OrderResponse>> {
+        val orders =
+            orderRepository.findByAccountId(accountId)
+                .sortedByDescending { it.createdAt }
+                .map { it.toResponse() }
         return ResponseEntity.ok(orders)
     }
 }
