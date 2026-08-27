@@ -46,9 +46,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-<<<<<<< HEAD
-}
-=======
     testLogging {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         showStackTraces = true
@@ -56,4 +53,3 @@ tasks.withType<Test> {
         events("passed", "skipped", "failed")
     }
 }
->>>>>>> origin/main
