@@ -1,4 +1,4 @@
-﻿# Normalize all text files to LF in the repository, regardless of what
+# Normalize all text files to LF in the repository, regardless of what
 # line endings a contributor's editor or OS produces on checkout.
 * text=auto eol=lf
 
