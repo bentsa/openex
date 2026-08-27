@@ -18,7 +18,6 @@
 - [API Reference](#api-reference)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
-- [Screenshots](#screenshots)
 - [Roadmap / Known Limitations](#roadmap--known-limitations)
 - [License](#license)
 
