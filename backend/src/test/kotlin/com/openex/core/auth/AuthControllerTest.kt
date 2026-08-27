@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
 @Transactional
 class AuthControllerTest {
-
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -30,7 +29,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.token").exists())
@@ -44,7 +43,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest))
+                .content(objectMapper.writeValueAsString(registerRequest)),
         ).andExpect(status().isOk)
 
         val loginRequest = LoginRequest(email = "logintest@openex.com", password = "SecurePass123!")
@@ -52,7 +51,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest))
+                .content(objectMapper.writeValueAsString(loginRequest)),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.token").exists())
@@ -66,13 +65,13 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request)),
         ).andExpect(status().isOk)
 
         mockMvc.perform(
             post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request)),
         ).andExpect(status().isBadRequest)
     }
 }

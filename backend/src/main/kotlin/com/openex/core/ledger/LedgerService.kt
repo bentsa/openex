@@ -10,15 +10,14 @@ class UnbalancedTransactionException(message: String) : RuntimeException(message
 data class LedgerPosting(
     val accountId: UUID,
     val amount: BigDecimal,
-    val direction: EntryDirection
+    val direction: EntryDirection,
 )
 
 @Service
 class LedgerService(
     private val ledgerEntryRepository: LedgerEntryRepository,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
 ) {
-
     /**
      * Posts a set of balanced debit/credit entries as a single atomic transaction.
      * All postings share one transactionId. Debits must equal credits, or the
@@ -30,16 +29,18 @@ class LedgerService(
 
         val transactionId = UUID.randomUUID()
 
-        val totalDebits = postings
-            .filter { it.direction == EntryDirection.DEBIT }
-            .sumOf { it.amount }
-        val totalCredits = postings
-            .filter { it.direction == EntryDirection.CREDIT }
-            .sumOf { it.amount }
+        val totalDebits =
+            postings
+                .filter { it.direction == EntryDirection.DEBIT }
+                .sumOf { it.amount }
+        val totalCredits =
+            postings
+                .filter { it.direction == EntryDirection.CREDIT }
+                .sumOf { it.amount }
 
         if (totalDebits.compareTo(totalCredits) != 0) {
             throw UnbalancedTransactionException(
-                "Debits ($totalDebits) do not equal credits ($totalCredits) for transaction $transactionId"
+                "Debits ($totalDebits) do not equal credits ($totalCredits) for transaction $transactionId",
             )
         }
 
@@ -53,8 +54,8 @@ class LedgerService(
                     transactionId = transactionId,
                     accountId = posting.accountId,
                     amount = posting.amount,
-                    direction = posting.direction
-                )
+                    direction = posting.direction,
+                ),
             )
         }
 

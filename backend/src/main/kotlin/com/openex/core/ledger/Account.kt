@@ -12,13 +12,10 @@ import java.util.UUID
 data class Account(
     @Id
     val id: UUID = UUID.randomUUID(),
-
     @Column(name = "user_id", nullable = false)
     val userId: UUID,
-
     @Column(nullable = false)
     val currency: String,
-
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 )

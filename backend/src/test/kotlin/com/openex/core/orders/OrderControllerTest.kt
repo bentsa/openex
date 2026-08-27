@@ -25,7 +25,6 @@ import java.util.UUID
 @AutoConfigureMockMvc
 @Transactional
 class OrderControllerTest {
-
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -47,31 +46,35 @@ class OrderControllerTest {
     @Autowired
     lateinit var jwtService: JwtService
 
-    private fun authToken(): String {
+    /** Registers a fresh user and returns (JWT, that user's account). */
+    private fun authTokenWithAccount(): Pair<String, Account> {
         val email = "ordertest-${UUID.randomUUID()}@openex.com"
-        userRepository.save(
-            User(email = email, passwordHash = passwordEncoder.encode("SecurePass123!"))
-        )
-        return jwtService.generateToken(email)
+        val user =
+            userRepository.save(
+                User(email = email, passwordHash = passwordEncoder.encode("SecurePass123!")),
+            )
+        val account = accountRepository.save(Account(userId = user.id, currency = "USD"))
+        return jwtService.generateToken(email) to account
     }
 
     @Test
     fun `creates a limit order successfully`() {
-        val account = accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
-        val request = CreateOrderRequest(
-            accountId = account.id,
-            side = OrderSide.BUY,
-            orderType = OrderType.LIMIT,
-            price = BigDecimal("50000.00"),
-            quantity = BigDecimal("0.5")
-        )
+        val (token, account) = authTokenWithAccount()
+        val request =
+            CreateOrderRequest(
+                accountId = account.id,
+                side = OrderSide.BUY,
+                orderType = OrderType.LIMIT,
+                price = BigDecimal("50000.00"),
+                quantity = BigDecimal("0.5"),
+            )
 
         mockMvc.perform(
             post("/api/orders")
-                .header("Authorization", "Bearer ${authToken()}")
+                .header("Authorization", "Bearer $token")
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.status").value("OPEN"))
@@ -80,35 +83,37 @@ class OrderControllerTest {
 
     @Test
     fun `duplicate submission with same idempotency key returns cached response, not a new order`() {
-        val account = accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
-        val request = CreateOrderRequest(
-            accountId = account.id,
-            side = OrderSide.BUY,
-            orderType = OrderType.MARKET,
-            quantity = BigDecimal("1.0")
-        )
+        val (token, account) = authTokenWithAccount()
+        val request =
+            CreateOrderRequest(
+                accountId = account.id,
+                side = OrderSide.BUY,
+                orderType = OrderType.MARKET,
+                quantity = BigDecimal("1.0"),
+            )
         val idempotencyKey = UUID.randomUUID().toString()
-        val token = authToken()
 
-        val firstResponse = mockMvc.perform(
-            post("/api/orders")
-                .header("Authorization", "Bearer $token")
-                .header("Idempotency-Key", idempotencyKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isCreated)
-            .andReturn().response.contentAsString
+        val firstResponse =
+            mockMvc.perform(
+                post("/api/orders")
+                    .header("Authorization", "Bearer $token")
+                    .header("Idempotency-Key", idempotencyKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            )
+                .andExpect(status().isCreated)
+                .andReturn().response.contentAsString
 
-        val secondResponse = mockMvc.perform(
-            post("/api/orders")
-                .header("Authorization", "Bearer $token")
-                .header("Idempotency-Key", idempotencyKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isCreated)
-            .andReturn().response.contentAsString
+        val secondResponse =
+            mockMvc.perform(
+                post("/api/orders")
+                    .header("Authorization", "Bearer $token")
+                    .header("Idempotency-Key", idempotencyKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            )
+                .andExpect(status().isCreated)
+                .andReturn().response.contentAsString
 
         assertEquals(firstResponse, secondResponse, "Cached response must match exactly")
         assertEquals(1, orderRepository.findByAccountId(account.id).size, "Only one order should exist")
@@ -116,19 +121,41 @@ class OrderControllerTest {
 
     @Test
     fun `missing idempotency key is rejected`() {
-        val account = accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
-        val request = CreateOrderRequest(
-            accountId = account.id,
-            side = OrderSide.SELL,
-            orderType = OrderType.MARKET,
-            quantity = BigDecimal("1.0")
-        )
+        val (token, account) = authTokenWithAccount()
+        val request =
+            CreateOrderRequest(
+                accountId = account.id,
+                side = OrderSide.SELL,
+                orderType = OrderType.MARKET,
+                quantity = BigDecimal("1.0"),
+            )
 
         mockMvc.perform(
             post("/api/orders")
-                .header("Authorization", "Bearer ${authToken()}")
+                .header("Authorization", "Bearer $token")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request)),
         ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `placing an order against another user's account is forbidden`() {
+        val (token, _) = authTokenWithAccount()
+        val someoneElsesAccount = accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
+        val request =
+            CreateOrderRequest(
+                accountId = someoneElsesAccount.id,
+                side = OrderSide.BUY,
+                orderType = OrderType.MARKET,
+                quantity = BigDecimal("1.0"),
+            )
+
+        mockMvc.perform(
+            post("/api/orders")
+                .header("Authorization", "Bearer $token")
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        ).andExpect(status().isForbidden)
     }
 }

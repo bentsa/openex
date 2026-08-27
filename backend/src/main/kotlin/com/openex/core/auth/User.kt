@@ -12,13 +12,10 @@ import java.util.UUID
 data class User(
     @Id
     val id: UUID = UUID.randomUUID(),
-
     @Column(nullable = false, unique = true)
     val email: String,
-
     @Column(name = "password_hash", nullable = false)
     val passwordHash: String,
-
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 )

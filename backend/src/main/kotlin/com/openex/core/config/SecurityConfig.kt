@@ -53,7 +53,9 @@ class SecurityConfig(
             // have different meanings for API clients and should stay distinct.
             response.contentType = MediaType.APPLICATION_JSON_VALUE
             response.status = 401
-            response.writer.write("""{"status":401,"error":"Unauthorized","message":"Authentication is required to access this resource"}""")
+            response.writer.write(
+                """{"status":401,"error":"Unauthorized","message":"Authentication is required to access this resource"}""",
+            )
         }
 
     @Bean

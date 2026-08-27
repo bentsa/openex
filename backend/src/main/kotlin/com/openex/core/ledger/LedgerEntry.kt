@@ -17,20 +17,15 @@ enum class EntryDirection { CREDIT, DEBIT }
 data class LedgerEntry(
     @Id
     val id: UUID = UUID.randomUUID(),
-
     @Column(name = "transaction_id", nullable = false)
     val transactionId: UUID,
-
     @Column(name = "account_id", nullable = false)
     val accountId: UUID,
-
     @Column(nullable = false, precision = 18, scale = 8)
     val amount: BigDecimal,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val direction: EntryDirection,
-
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 )

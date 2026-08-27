@@ -5,5 +5,6 @@ import java.util.UUID
 
 interface LedgerEntryRepository : JpaRepository<LedgerEntry, UUID> {
     fun findByTransactionId(transactionId: UUID): List<LedgerEntry>
+
     fun findByAccountId(accountId: UUID): List<LedgerEntry>
 }

@@ -8,7 +8,7 @@ data class CreateOrderRequest(
     val side: OrderSide,
     val orderType: OrderType,
     val price: BigDecimal? = null,
-    val quantity: BigDecimal
+    val quantity: BigDecimal,
 )
 
 data class OrderResponse(
@@ -19,16 +19,17 @@ data class OrderResponse(
     val price: BigDecimal?,
     val quantity: BigDecimal,
     val filledQuantity: BigDecimal,
-    val status: OrderStatus
+    val status: OrderStatus,
 )
 
-fun Order.toResponse() = OrderResponse(
-    id = id,
-    accountId = accountId,
-    side = side,
-    orderType = orderType,
-    price = price,
-    quantity = quantity,
-    filledQuantity = filledQuantity,
-    status = status
-)
+fun Order.toResponse() =
+    OrderResponse(
+        id = id,
+        accountId = accountId,
+        side = side,
+        orderType = orderType,
+        price = price,
+        quantity = quantity,
+        filledQuantity = filledQuantity,
+        status = status,
+    )

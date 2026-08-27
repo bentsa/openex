@@ -12,7 +12,6 @@ import java.util.UUID
 @SpringBootTest
 @Transactional // rolls back each test automatically after it runs
 class LedgerServiceTest {
-
     @Autowired
     lateinit var ledgerService: LedgerService
 
@@ -22,25 +21,26 @@ class LedgerServiceTest {
     @Autowired
     lateinit var ledgerEntryRepository: LedgerEntryRepository
 
-    private fun createAccount(): Account =
-        accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
+    private fun createAccount(): Account = accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
 
     @Test
     fun `balanced transaction posts successfully and entries sum to zero`() {
         val accountA = createAccount()
         val accountB = createAccount()
 
-        val txId = ledgerService.postTransaction(
-            listOf(
-                LedgerPosting(accountA.id, BigDecimal("100.00"), EntryDirection.DEBIT),
-                LedgerPosting(accountB.id, BigDecimal("100.00"), EntryDirection.CREDIT)
+        val txId =
+            ledgerService.postTransaction(
+                listOf(
+                    LedgerPosting(accountA.id, BigDecimal("100.00"), EntryDirection.DEBIT),
+                    LedgerPosting(accountB.id, BigDecimal("100.00"), EntryDirection.CREDIT),
+                ),
             )
-        )
 
         val entries = ledgerEntryRepository.findByTransactionId(txId)
-        val sum = entries.sumOf {
-            if (it.direction == EntryDirection.DEBIT) it.amount.negate() else it.amount
-        }
+        val sum =
+            entries.sumOf {
+                if (it.direction == EntryDirection.DEBIT) it.amount.negate() else it.amount
+            }
 
         assertEquals(0, sum.compareTo(BigDecimal.ZERO), "Ledger entries must sum to zero")
         assertEquals(2, entries.size)
@@ -55,8 +55,8 @@ class LedgerServiceTest {
             ledgerService.postTransaction(
                 listOf(
                     LedgerPosting(accountA.id, BigDecimal("100.00"), EntryDirection.DEBIT),
-                    LedgerPosting(accountB.id, BigDecimal("50.00"), EntryDirection.CREDIT)
-                )
+                    LedgerPosting(accountB.id, BigDecimal("50.00"), EntryDirection.CREDIT),
+                ),
             )
         }
 
@@ -72,8 +72,8 @@ class LedgerServiceTest {
         ledgerService.postTransaction(
             listOf(
                 LedgerPosting(account.id, BigDecimal("200.00"), EntryDirection.CREDIT),
-                LedgerPosting(counterparty.id, BigDecimal("200.00"), EntryDirection.DEBIT)
-            )
+                LedgerPosting(counterparty.id, BigDecimal("200.00"), EntryDirection.DEBIT),
+            ),
         )
 
         assertEquals(0, ledgerService.getBalance(account.id).compareTo(BigDecimal("200.00")))

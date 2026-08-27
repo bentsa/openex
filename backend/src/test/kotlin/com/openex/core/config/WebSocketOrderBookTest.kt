@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class WebSocketOrderBookTest {
-
     @LocalServerPort
     var port: Int = 0
 
@@ -53,33 +52,56 @@ class WebSocketOrderBookTest {
         val buyerAccount = accountRepository.save(Account(userId = UUID.randomUUID(), currency = "USD"))
 
         val stompClient = WebSocketStompClient(StandardWebSocketClient())
-        stompClient.messageConverter = MappingJackson2MessageConverter().apply {
-            objectMapper = jacksonObjectMapper()
-        }
+        stompClient.messageConverter =
+            MappingJackson2MessageConverter().apply {
+                objectMapper = jacksonObjectMapper()
+            }
 
         val received = LinkedBlockingQueue<OrderBookSnapshot>()
 
-        val session = stompClient
-            .connectAsync("ws://localhost:$port/ws/websocket", object : StompSessionHandlerAdapter() {
-                override fun handleException(session: StompSession, command: StompCommand?, headers: StompHeaders, payload: ByteArray, exception: Throwable) {
-                    println("DEBUG: STOMP EXCEPTION command=$command payload=${String(payload)}")
-                    exception.printStackTrace()
-                }
-                override fun handleTransportError(session: StompSession, exception: Throwable) {
-                    println("DEBUG: TRANSPORT ERROR")
-                    exception.printStackTrace()
-                }
-            })
-            .get(10, TimeUnit.SECONDS)
+        val session =
+            stompClient
+                .connectAsync(
+                    "ws://localhost:$port/ws/websocket",
+                    object : StompSessionHandlerAdapter() {
+                        override fun handleException(
+                            session: StompSession,
+                            command: StompCommand?,
+                            headers: StompHeaders,
+                            payload: ByteArray,
+                            exception: Throwable,
+                        ) {
+                            println("DEBUG: STOMP EXCEPTION command=$command payload=${String(payload)}")
+                            exception.printStackTrace()
+                        }
+
+                        override fun handleTransportError(
+                            session: StompSession,
+                            exception: Throwable,
+                        ) {
+                            println("DEBUG: TRANSPORT ERROR")
+                            exception.printStackTrace()
+                        }
+                    },
+                )
+                .get(10, TimeUnit.SECONDS)
         println("DEBUG: session connected = ${session.isConnected}")
 
-        val subscription = session.subscribe("/topic/orderbook", object : StompFrameHandler {
-            override fun getPayloadType(headers: StompHeaders): Type = OrderBookSnapshot::class.java
-            override fun handleFrame(headers: StompHeaders, payload: Any?) {
-                println("DEBUG: frame received, payload=$payload")
-                received.add(payload as OrderBookSnapshot)
-            }
-        })
+        val subscription =
+            session.subscribe(
+                "/topic/orderbook",
+                object : StompFrameHandler {
+                    override fun getPayloadType(headers: StompHeaders): Type = OrderBookSnapshot::class.java
+
+                    override fun handleFrame(
+                        headers: StompHeaders,
+                        payload: Any?,
+                    ) {
+                        println("DEBUG: frame received, payload=$payload")
+                        received.add(payload as OrderBookSnapshot)
+                    }
+                },
+            )
         println("DEBUG: subscription id = ${subscription.subscriptionHeaders.id}")
 
         Thread.sleep(500) // give the STOMP subscription time to register server-side before we trigger a broadcast
@@ -90,8 +112,8 @@ class WebSocketOrderBookTest {
                 side = OrderSide.SELL,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("75.00"),
-                quantity = BigDecimal("5")
-            )
+                quantity = BigDecimal("5"),
+            ),
         )
 
         matchingEngineService.submitOrder(
@@ -100,8 +122,8 @@ class WebSocketOrderBookTest {
                 side = OrderSide.BUY,
                 orderType = OrderType.LIMIT,
                 price = BigDecimal("75.00"),
-                quantity = BigDecimal("5")
-            )
+                quantity = BigDecimal("5"),
+            ),
         )
 
         println("DEBUG: session still connected before poll = ${session.isConnected}")
