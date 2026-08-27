@@ -19,7 +19,7 @@
 - [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Roadmap / Known Limitations](#roadmap--known-limitations)
-- [License](#license)
+
 
 ---
 
@@ -223,4 +223,4 @@ openex/
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+
