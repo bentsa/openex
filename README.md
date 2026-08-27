@@ -216,10 +216,6 @@ openex/
 └── README.md
 ```
 
-## Screenshots
-
-> _Add screenshots of the dashboard, live order book, and AI chat widget here._
-
 ## Roadmap / Known Limitations
 
 - Matching engine is in-memory and single-node (no persistence of the book itself across restarts, only executed trades).
