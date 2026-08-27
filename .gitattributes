@@ -1,0 +1,19 @@
+﻿# Normalize all text files to LF in the repository, regardless of what
+# line endings a contributor's editor or OS produces on checkout.
+* text=auto eol=lf
+
+# Windows batch/cmd files genuinely need CRLF to run correctly.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# gradlew is a shell script - it must stay LF even on Windows checkouts,
+# otherwise it fails to execute inside Linux-based Docker build stages.
+gradlew text eol=lf
+
+# Binary files - never touch these.
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.svg binary
+*.ico binary
